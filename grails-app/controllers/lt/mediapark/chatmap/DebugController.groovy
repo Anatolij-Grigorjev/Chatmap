@@ -92,9 +92,7 @@ class DebugController {
                 user = new User()
                 user.gender = Gender.values()[rnd.nextBoolean() ? 1 : 0]
                 //take random first name and random last name
-                user.name = names[rnd.nextInt(names.size())].split('\\s+')[0]
-                +' '
-                +names[rnd.nextInt(names.size())].split('\\s+')[1]
+                user.name = names[rnd.nextInt(names.size())].split('\\s+')[0] + ' ' + names[rnd.nextInt(names.size())].split('\\s+')[1]
                 user.emoji = emojis[rnd.nextInt(emojis.size())]
                 user.save()
             }

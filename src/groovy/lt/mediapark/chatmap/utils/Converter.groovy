@@ -25,9 +25,8 @@ class Converter {
                         "class: ${obj.class.name}")
             }
         } else {
-            res = obj;
+            res = (Long) obj
         }
-        log.debug("Coerced ${obj} to Long ${res}")
         return res
     }
 

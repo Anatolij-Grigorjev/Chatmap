@@ -7,7 +7,7 @@ class UrlMappings {
             }
         }
 
-        "picture/upload/$lat/$lng" {
+        "/picture/upload/$lat/$lng" {
             controller = 'picture'
             action = 'upload'
         }
