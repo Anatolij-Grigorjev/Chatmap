@@ -2,9 +2,15 @@ package lt.mediapark.chatmap
 
 import grails.transaction.Transactional
 import lt.mediapark.chatmap.chat.ChatMessage
+import org.springframework.web.multipart.MultipartFile
+import org.springframework.web.multipart.MultipartRequest
+
+import javax.servlet.http.HttpServletRequest
 
 @Transactional
 class ChatService {
+
+    def usersService
 
     ChatMessage getLatestMessage(User requestor, User other) {
         def c = Calendar.getInstance()
@@ -53,5 +59,20 @@ class ChatService {
         ChatMessage.saveAll(receivedMessages)
 
         historyMessages
+    }
+
+    ChatMessage sendMessage(def senderId, def receiverId, HttpServletRequest request) {
+        User sender = usersService.get(senderId)
+        User receiver = usersService.get(receiverId)
+        String text = request.JSON?.text
+        Picture picture = null
+        if (request instanceof MultipartRequest) {
+            MultipartFile file = request.getFile("picture")
+            picture = new Picture(name: file.name, data: file.bytes)
+            picture = picture.save()
+        }
+        ChatMessage message = new ChatMessage(sender: sender, receiver: receiver, text: text, picture: picture)
+        message.sendDate = new Date()
+        message
     }
 }

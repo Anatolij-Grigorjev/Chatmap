@@ -1,6 +1,7 @@
 package lt.mediapark.chatmap
 
 import grails.converters.JSON
+import lt.mediapark.chatmap.chat.ChatMessage
 
 class ChatController {
 
@@ -33,5 +34,15 @@ class ChatController {
         } else {
             render 403
         }
+    }
+
+
+    def send() {
+        def senderId = params.requestor
+        def receiverId = params.id
+
+        ChatMessage message = chatService.sendMessage(senderId, receiverId, request)
+        def map = converterService.chatMessageToJSON(message)
+        render map as JSON
     }
 }

@@ -93,6 +93,16 @@ grails.hibernate.pass.readonly = false
 // configure passing read-only to OSIV session by default, requires "singleSession = false" OSIV mode
 grails.hibernate.osiv.readonly = false
 
+grails.apns.dev.p12.path = '/opt/tomcat-chatmap/cert/invite_dev.p12'
+grails.apns.dev.p12.password = ''
+grails.apns.dev.manager.name = 'DEV-PUSHY-MANAGER'
+grails.apns.dev.environment = 'sandbox'
+grails.apns.prod.p12.path = '/opt/tomcat-chatmap/cert/invite_prod.p12'
+grails.apns.prod.p12.password = 'parkas'
+grails.apns.prod.manager.name = 'PROD-PUSHY-MANAGER'
+grails.apns.prod.environment = 'production'
+
+
 environments {
     development {
         grails.logging.jul.usebridge = true

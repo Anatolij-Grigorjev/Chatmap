@@ -3,7 +3,7 @@ package lt.mediapark.chatmap
 class Picture {
 
     static constraints = {
-        data nullable: false
+        data maxSize: 4096 * 2160, nullable: false
     }
 
     byte[] data

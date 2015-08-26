@@ -4,5 +4,6 @@ class MapController {
 
     def index() {
 
+
     }
 }
