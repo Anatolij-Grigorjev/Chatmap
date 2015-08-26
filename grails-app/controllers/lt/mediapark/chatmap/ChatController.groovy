@@ -14,7 +14,7 @@ class ChatController {
             send : 'POST'
     ]
 
-    def index() {
+    def index = {
         def requestorId = params.requestor
 
         boolean requestorIs1 = params.id1 == requestorId
@@ -42,10 +42,17 @@ class ChatController {
     }
 
 
-    def send() {
+    def send = {
         def senderId = params.requestor
         def receiverId = params.id
-
+        if (params.text) {
+            def text = URLDecoder.decode(params.text, "UTF-8")
+            if (text.startsWith("\"")) text = text.substring(1)
+            if (text.endsWith("\"")) text = text.substring(0, text.size() - 1)
+            request['text'] = text
+        } else if (request.JSON) {
+            request['text'] = request.JSON.text
+        }
         ChatMessage message = chatService.sendMessage(senderId, receiverId, request)
         def map = converterService.chatMessageToJSON(message)
         render map as JSON

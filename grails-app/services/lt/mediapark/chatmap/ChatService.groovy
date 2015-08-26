@@ -64,7 +64,7 @@ class ChatService {
     ChatMessage sendMessage(def senderId, def receiverId, HttpServletRequest request) {
         User sender = usersService.get(senderId)
         User receiver = usersService.get(receiverId)
-        String text = request.JSON?.text
+        String text = request['text']
         Picture picture = null
         if (request instanceof MultipartRequest) {
             MultipartFile file = request.getFile("picture")

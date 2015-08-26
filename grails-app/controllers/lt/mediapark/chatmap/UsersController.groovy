@@ -12,7 +12,7 @@ class UsersController {
             index : 'GET'
     ]
 
-    def index() {
+    def index = {
         def user = usersService.get(Long.parseLong(params.id))
         if (user) {
             def target = converterService.userToJSONForMap(user)
