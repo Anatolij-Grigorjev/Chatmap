@@ -1,9 +1,8 @@
-package lt.mediapatk.chatmap
+package lt.mediapark.chatmap
 
 class User {
 
     static constraints = {
-        name nullable: false
         gender nullable: false
         emoji nullable: false
         deviceToken unique: true

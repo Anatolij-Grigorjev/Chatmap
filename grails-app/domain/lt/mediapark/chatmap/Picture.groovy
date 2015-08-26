@@ -1,4 +1,4 @@
-package lt.mediapatk.chatmap
+package lt.mediapark.chatmap
 
 class Picture {
 
