@@ -12,4 +12,6 @@ class User {
     String name
     String emoji
     Gender gender
+    Double lat
+    Double lng
 }

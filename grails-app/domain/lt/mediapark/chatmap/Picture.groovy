@@ -8,5 +8,7 @@ class Picture {
 
     byte[] data
     String name
+    Double lat
+    Double lng
 
 }
