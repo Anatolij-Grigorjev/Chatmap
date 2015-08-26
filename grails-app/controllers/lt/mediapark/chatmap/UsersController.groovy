@@ -7,6 +7,11 @@ class UsersController {
     def usersService
     def converterService
 
+    static allowedMethods = [
+            update: 'POST',
+            index : 'GET'
+    ]
+
     def index() {}
 
     def update = {

@@ -9,6 +9,11 @@ class ChatController {
     def converterService
     def usersService
 
+    static allowedMethods = [
+            index: 'GET',
+            send : 'POST'
+    ]
+
     def index() {
         def requestorId = params.requestor
 

@@ -7,7 +7,13 @@ class UrlMappings {
             }
         }
 
+        "picture/upload/$lat/$lng" {
+            controller = 'picture'
+            action = 'upload'
+        }
+
         "/"(view: "/index")
         "500"(view: '/error')
     }
+
 }
