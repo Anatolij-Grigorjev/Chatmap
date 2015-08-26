@@ -14,4 +14,8 @@ class User {
     Gender gender
     Double lat
     Double lng
+
+    boolean hasLocation() {
+        lat && lng
+    }
 }
