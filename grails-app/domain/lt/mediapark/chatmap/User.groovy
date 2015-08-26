@@ -14,6 +14,7 @@ class User {
     Gender gender
     Double lat
     Double lng
+    Boolean wantsNotifications
 
     boolean hasLocation() {
         lat && lng
