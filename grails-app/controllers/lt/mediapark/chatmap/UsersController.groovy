@@ -23,7 +23,7 @@ class UsersController {
     }
 
     def update = {
-        def user = usersService.get(Long.parseLong(params.id), false)
+        def user = usersService.get(Long.parseLong(params.id))
         user = usersService.updateUser(user, (Map) request.JSON)
 
         def map = converterService.userToJSONForMap(user)

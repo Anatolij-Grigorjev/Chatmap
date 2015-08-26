@@ -8,7 +8,6 @@ class UsersService {
 
     def User get(def anyUserId) {
         Long userId = Converter.coerceToLong(anyUserId)
-        log.info("User id ${userId} was requested,${canBeOffline ? " " : " NOT "}OK to search storage users...")
         def user = User.get(userId)
 //        if (loggedInUsers.containsKey(userId)) {
 //            log.info("Fetching ${userId} from cache!")
@@ -24,7 +23,9 @@ class UsersService {
     User updateUser(User user, Map updates) {
         if (updates?.name) user?.name = updates.name
         if (updates?.emoji) user?.emoji = updates.emoji
-        if (updates?.gender) user?.gender = Gender.valueOf(updates.gender)
+        if (updates?.gender &&
+                Gender.values().any { it.toString() == updates.gender })
+            user?.gender = Gender.valueOf(updates.gender)
         if (updates?.deviceToken) user?.deviceToken = updates.deviceToken
         if (updates?.lng) user?.lng = updates.lng
         if (updates?.lat) user?.lat = updates.lat
