@@ -21,6 +21,23 @@ class ConverterService {
         map
     }
 
+    Map userToJSONForMap(User user) {
+        def map = msgUserToJSON(user)
+        if (user?.lat) map['lat'] = user.lat
+        if (user?.lng) map['lng'] = user.lng
+
+        map
+    }
+
+    Map pictureToJSONForMap(Picture picture) {
+        def map = [:]
+        if (picture?.id) map['id'] = picture.id
+        if (picture?.lat) map['lat'] = picture.lat
+        if (picture?.lng) map['lng'] = picture.lng
+
+        map
+    }
+
 
     Map chatMessageToJSON(ChatMessage chatMessage) {
         def map = [:]
@@ -35,7 +52,7 @@ class ConverterService {
         map
     }
 
-    def msgUserToJSON(User user) {
+    Map msgUserToJSON(User user) {
         def map = [:]
         if (user?.name) map['name'] = user.name
         if (user?.id) map['id'] = user.id
