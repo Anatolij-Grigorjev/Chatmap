@@ -34,6 +34,14 @@ grails.mime.types = [ // the first one is the default format
 // URL Mapping Cache Max Size, defaults to 5000
 //grails.urlmapping.cache.maxsize = 1000
 
+// make all properties nullable by default
+grails.gorm.default.constraints = {
+    '*'(nullable: true)
+}
+
+// turn off silent GORM errors
+grails.gorm.failOnError = true
+
 // Legacy setting for codec used to encode data with ${}
 grails.views.default.codec = "html"
 
@@ -102,6 +110,11 @@ log4j.main = {
     //appenders {
     //    console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
     //}
+
+    debug 'grails.app.controllers',        // controllers
+            'grails.app.services',
+            'grails.app.filters',
+            'grails.app'
 
     error 'org.codehaus.groovy.grails.web.servlet',        // controllers
             'org.codehaus.groovy.grails.web.pages',          // GSP
