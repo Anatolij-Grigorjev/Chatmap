@@ -9,8 +9,25 @@ class UsersController {
 
     static allowedMethods = [
             update: 'POST',
-            index : 'GET'
+            index : 'GET',
+            create: 'POST'
     ]
+
+    def create = {
+        boolean enoughInfo = (request.JSON
+                && request.JSON?.name
+                && (request.JSON?.lat != null)
+                && (request.JSON?.lng != null)
+                && request.JSON?.emoji
+                && request.JSON?.gender
+        )
+        if (!enoughInfo) {
+            return render(status: 400, "Not enough information to create a user!")
+        }
+        def user = usersService.createUser(request.JSON)
+        def map = converterService.userToJSONForMap(user)
+        render map as JSON
+    }
 
     def index = {
         def user = usersService.get(Long.parseLong(params.id))

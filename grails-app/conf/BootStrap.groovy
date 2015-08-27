@@ -25,10 +25,14 @@ class BootStrap {
         pushManagerDev?.metaClass?.otherManager = pushManagerProd
         registerListeners(pushManagerDev)
         registerListeners(pushManagerProd)
-        pushManagerProd?.start()
-        log.debug("Push manager ${pushManagerProd?.name} initialized!")
-        pushManagerDev?.start()
-        log.debug("Push manager ${pushManagerDev?.name} initialized!")
+        if (pushManagerProd) {
+            pushManagerProd?.start()
+            log.debug("Push manager ${pushManagerProd?.name} initialized!")
+        }
+        if (pushManagerDev) {
+            pushManagerDev?.start()
+            log.debug("Push manager ${pushManagerDev?.name} initialized!")
+        }
 
     }
 

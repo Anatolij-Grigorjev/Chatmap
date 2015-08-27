@@ -23,8 +23,8 @@ class ConverterService {
 
     Map userToJSONForMap(User user) {
         def map = msgUserToJSON(user)
-        if (user?.lat) map['lat'] = user.lat
-        if (user?.lng) map['lng'] = user.lng
+        if (user?.lat != null) map['lat'] = user.lat
+        if (user?.lng != null) map['lng'] = user.lng
         if (user?.wantsNotifications != null) map['wantsNotifications'] = user.wantsNotifications.toString()
 
         map
@@ -33,8 +33,8 @@ class ConverterService {
     Map pictureToJSONForMap(Picture picture) {
         def map = [:]
         if (picture?.id) map['id'] = picture.id
-        if (picture?.lat) map['lat'] = picture.lat
-        if (picture?.lng) map['lng'] = picture.lng
+        if (picture?.lat != null) map['lat'] = picture.lat
+        if (picture?.lng != null) map['lng'] = picture.lng
 
         map
     }
