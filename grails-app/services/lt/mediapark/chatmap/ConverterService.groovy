@@ -25,6 +25,7 @@ class ConverterService {
         def map = msgUserToJSON(user)
         if (user?.lat) map['lat'] = user.lat
         if (user?.lng) map['lng'] = user.lng
+        if (user?.wantsNotifications != null) map['wantsNotifications'] = user.wantsNotifications.toString()
 
         map
     }

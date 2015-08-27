@@ -14,7 +14,7 @@ class User {
     Gender gender
     Double lat
     Double lng
-    Boolean wantsNotifications
+    Boolean wantsNotifications = Boolean.FALSE
 
     boolean hasLocation() {
         lat && lng

@@ -54,6 +54,7 @@ class ChatService {
             order('sendDate', 'asc')
             maxResults(limit)
         }
+        log.debug("resulting messages list ${historyMessages.size()}")
         def receivedMessages = historyMessages.findAll { ChatMessage message -> requestor == message.receiver }
         receivedMessages.each { ChatMessage msg -> if (!msg.receiveDate) msg.receiveDate = new Date() }
         ChatMessage.saveAll(receivedMessages)
@@ -73,6 +74,6 @@ class ChatService {
         }
         ChatMessage message = new ChatMessage(sender: sender, receiver: receiver, text: text, picture: picture)
         message.sendDate = new Date()
-        message
+        message.save(flush: true)
     }
 }
