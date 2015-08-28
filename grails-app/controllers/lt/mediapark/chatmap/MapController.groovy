@@ -13,18 +13,22 @@ class MapController {
         def user = usersService.get(params.id)
         Collection<User> usersChain = mapService.getChainFor(user)
 
-        def (minLat, minLng) = getExtremePoint(usersChain, 'min')
+//        def (minLat, minLng) = getExtremePoint(usersChain, 'min')
         def (maxLat, maxLng) = getExtremePoint(usersChain, 'max')
 
-        //small margins to offset hte map and make it look more framed
-        double margins = 0.017
+        def center = usersChain.find { it.isCenter }
+
+        //set correct margin from group center to let everybody see stuff
+        //from centrail chain link
+        double marginsLat = 0.017 + Math.abs(center.lat - maxLat)
+        double marginsLng = 0.017 + Math.abs(center.lng - maxLng)
 
         def target = [:]
 
-        target.minLat = (minLat - margins)
-        target.minLng = (minLng - margins)
-        target.maxLat = (maxLat + margins)
-        target.maxLng = (maxLng + margins)
+        target.minLat = (center.lat - marginsLat)
+        target.minLng = (center.lng - marginsLng)
+        target.maxLat = (center.lat + marginsLat)
+        target.maxLng = (center.lng + marginsLng)
 
         target.users = usersChain.collect { converterService.userToJSONForMap(it) }
 
