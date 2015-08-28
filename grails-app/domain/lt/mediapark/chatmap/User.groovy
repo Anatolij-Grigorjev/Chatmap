@@ -8,9 +8,6 @@ class User {
         deviceToken unique: true
     }
 
-    static transients = ['isCenter']
-
-
     String deviceToken
     String name
     String emoji
@@ -18,7 +15,6 @@ class User {
     Double lat
     Double lng
     Boolean wantsNotifications = Boolean.FALSE
-    Boolean isCenter = false
 
     boolean hasLocation() {
         lat && lng

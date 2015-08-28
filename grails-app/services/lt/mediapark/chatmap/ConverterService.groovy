@@ -3,6 +3,7 @@ package lt.mediapark.chatmap
 import grails.transaction.Transactional
 import lt.mediapark.chatmap.chat.ChatMessage
 import lt.mediapark.chatmap.utils.DistanceCalc
+import lt.mediapark.chatmap.utils.UserChainLink
 
 @Transactional
 class ConverterService {
@@ -18,6 +19,13 @@ class ConverterService {
         if (message) {
             map['latestMessage'] = chatMessageToJSON(message)
         }
+        map
+    }
+
+    Map userToJSONForMap(UserChainLink chain) {
+        def map = userToJSONForMap(chain.user)
+        map['isCenter'] = Boolean.toString(chain.isCenter)
+
         map
     }
 
