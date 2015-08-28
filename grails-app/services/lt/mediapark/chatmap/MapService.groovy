@@ -5,7 +5,8 @@ import grails.transaction.Transactional
 @Transactional
 class MapService {
 
-    def serviceMethod() {
+    Collection<User> getChainFor(User user) {
+
 
     }
 }

@@ -21,6 +21,14 @@ class UrlMappings {
             action = 'index'
         }
 
+        "/map/$id" {
+            constraints {
+                id matches: /\d+/
+            }
+            controller = 'map'
+            action = 'index'
+        }
+
         "/users/$id" {
             constraints {
                 id matches: /\d+/
