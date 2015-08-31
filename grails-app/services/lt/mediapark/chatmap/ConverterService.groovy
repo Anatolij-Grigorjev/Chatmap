@@ -13,7 +13,7 @@ class ConverterService {
     Map userToJSONForChat(User user, User relation) {
         def map = msgUserToJSON(user)
         if (user?.hasLocation() && relation?.hasLocation()) {
-            map['distance'] = DistanceCalc.getHavershineDistance(user, relation)
+            map['distance'] = DistanceCalc.getHaversineDistance(user, relation)
         }
         def message = chatService.getLatestMessage(relation, user)
         if (message) {

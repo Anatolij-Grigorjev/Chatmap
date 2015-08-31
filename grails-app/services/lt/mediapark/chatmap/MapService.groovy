@@ -32,15 +32,22 @@ class MapService {
     private Set<UserChainLink> getChainRecur(User user, List<User> allUsers) {
         //all users close to one currently explored
         List closeUsers = (List) allUsers.findAllParallel {
-            it != user && DistanceCalc.getHavershineDistance((User) it, user) < 200
+            it != user && DistanceCalc.getHaversineDistance((User) it, user) < 200
         }
         def userChainLink = new UserChainLink(user)
         userChainLink.connections = closeUsers.collectEntries {
-            [(it): DistanceCalc.getHavershineDistance(user, (User) it)]
+            [(it): DistanceCalc.getHaversineDistance(user, (User) it)]
         }
         Set<UserChainLink> set = [userChainLink]
         closeUsers.each { set.addAll getChainRecur((User) it, allUsers) }
 
         return set
+    }
+
+    def getExtremePoint(Collection<User> users, String extreme) {
+        Double lat = users.lat."${extreme}"()
+        Double lng = users.lng."${extreme}"()
+
+        [lat, lng]
     }
 }

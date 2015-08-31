@@ -15,7 +15,7 @@ class MapController {
         Collection<UserChainLink> usersChain = mapService.getChainFor(user)
 
 //        def (minLat, minLng) = getExtremePoint(usersChain, 'min')
-        def (maxLat, maxLng) = getExtremePoint(usersChain.user, 'max')
+        def (maxLat, maxLng) = mapService.getExtremePoint(usersChain.user, 'max')
 
         def center = usersChain.find { it.isCenter }
 
@@ -36,10 +36,4 @@ class MapController {
         render target as JSON
     }
 
-    def getExtremePoint(Collection<User> users, String extreme) {
-        Double lat = users.lat."${extreme}"()
-        Double lng = users.lng."${extreme}"()
-
-        [lat, lng]
-    }
 }

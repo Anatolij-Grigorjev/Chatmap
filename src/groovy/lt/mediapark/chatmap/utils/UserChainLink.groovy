@@ -18,13 +18,17 @@ class UserChainLink {
         this.user = user
         isCenter = false
         connections = [:]
-        avgDist = 0.0
+        avgDist = BigDecimal.ZERO.doubleValue()
     }
 
 
     public void setConnections(Map<User, Double> connections) {
         this.connections = connections
-        this.avgDist = this.connections.values().sum() / this.connections.size()
+        if (connections) {
+            this.avgDist = (((Double) this.connections.values().sum()) / ((Double) this.connections.size()))?.doubleValue()
+        } else {
+            this.avgDist = Double.MAX_VALUE
+        }
     }
 
 
