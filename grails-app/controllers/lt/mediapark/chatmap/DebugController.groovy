@@ -126,6 +126,7 @@ class DebugController {
         def users = User.all
         def rnd = new Random()
         def result = []
+
         amount.times {
             //54.689566, 25.272500
             Double latOrigin = params.lat ? Double.parseDouble(params.lat) : 54.689566

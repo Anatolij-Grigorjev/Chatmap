@@ -29,3 +29,10 @@ Double lngOrigin = 25.272500
 
     println "For ${n} values, Havershine is ${(1.0 - (nanosH / nanosM)) * 100}% faster"
 }
+
+def fact
+fact = { n, total ->
+    n == 0 ? total : fact.trampoline(n - 1, n * total)
+}.trampoline()
+//def factorial = { n -> fact(n, 1G)}
+println fact(20, 1G) // => 2432902008176640000

@@ -1,6 +1,7 @@
 package lt.mediapark.chatmap
 
 import grails.transaction.Transactional
+import groovyx.gpars.GParsPool
 import lt.mediapark.chatmap.utils.DistanceCalc
 import lt.mediapark.chatmap.utils.UserChainLink
 
@@ -11,43 +12,56 @@ class MapService {
 
         //prefetching all users not to do this many times in recursive method
         def allUsers = User.all
-
         Set<UserChainLink> usersChain = getChainRecur(me, allUsers)
-
         //chain acquired, time to find chain center
+        UserChainLink center = null
 
-        //filter to users with most connections
-        int max = usersChain.collect { it.connections.size() }.max()
-        Set<UserChainLink> mostConnected = usersChain.findAll { it.connections.size() >= max }
-
-        //find the smallest average distance
-        double minAvgDist = mostConnected.collect { it.avgDist }.min()
-
-        def center = mostConnected.find { it.avgDist == minAvgDist }
-        center.isCenter = true
+        GParsPool.withPool {
+            //filter to users with most connections
+            int max = usersChain.collectParallel { UserChainLink link -> link.connections.size() }.maxParallel()
+            Set<UserChainLink> mostConnected =
+                    usersChain.findAllParallel { UserChainLink link -> link.connections.size() >= max }
+            log.debug("Largest connection size was ${max}, spotted in ${mostConnected.size()} users")
+            //find the smallest average distance
+            double minAvgDist = mostConnected.collectParallel { UserChainLink link -> link.avgDist }.minParallel()
+            center = mostConnected.findParallel { UserChainLink link -> link.avgDist == minAvgDist }
+            log.debug("Min average distance was ${minAvgDist}, first spotted in ${center}")
+        }
+        center?.isCenter = true
 
         usersChain
     }
 
-    private Set<UserChainLink> getChainRecur(User user, List<User> allUsers) {
+    Set<UserChainLink> getChainRecur(User user, List<User> allUsers) {
         //all users close to one currently explored
-        List closeUsers = (List) allUsers.findAllParallel {
-            it != user && DistanceCalc.getHaversineDistance((User) it, user) < 200
+        Set<User> closeUsers = [] as Set
+        GParsPool.withPool {
+            List closeUsersList = (List) allUsers.findAllParallel {
+                it != user && DistanceCalc.getHaversineDistance((User) it, user) < 200
+            }
+            closeUsers.addAll(closeUsersList)
         }
         def userChainLink = new UserChainLink(user)
         userChainLink.connections = closeUsers.collectEntries {
             [(it): DistanceCalc.getHaversineDistance(user, (User) it)]
         }
         Set<UserChainLink> set = [userChainLink]
+        //removing user from all users list since we already know everybody they are close to
+        //and this prevent infinite recursion
+        allUsers.remove(user)
+
         closeUsers.each { set.addAll getChainRecur((User) it, allUsers) }
 
         return set
     }
 
     def getExtremePoint(Collection<User> users, String extreme) {
-        Double lat = users.lat."${extreme}"()
-        Double lng = users.lng."${extreme}"()
+        Double lat = 0.0, lng = 0.0
+        GParsPool.withPool {
+            lat = users.lat."${extreme}Parallel"()
+            lng = users.lng."${extreme}Parallel"()
 
+        }
         [lat, lng]
     }
 }

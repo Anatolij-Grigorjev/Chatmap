@@ -1,12 +1,10 @@
 package lt.mediapark.chatmap.utils
 
-import groovy.transform.CompileStatic
 import lt.mediapark.chatmap.User
 
 /**
  * Created by anatolij on 28/08/15.
  */
-@CompileStatic
 class UserChainLink {
 
     User user
@@ -25,11 +23,32 @@ class UserChainLink {
     public void setConnections(Map<User, Double> connections) {
         this.connections = connections
         if (connections) {
-            this.avgDist = (((Double) this.connections.values().sum()) / ((Double) this.connections.size()))?.doubleValue()
+            this.avgDist = this.connections.values().sum() / this.connections.size()
         } else {
             this.avgDist = Double.MAX_VALUE
         }
     }
 
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (!(o instanceof UserChainLink)) return false
 
+        UserChainLink that = (UserChainLink) o
+
+        if (user != that.user) return false
+
+        return true
+    }
+
+    int hashCode() {
+        return user.hashCode()
+    }
+
+
+    @Override
+    public String toString() {
+        return "UserChainLink{" +
+                "user=" + user +
+                '}';
+    }
 }
