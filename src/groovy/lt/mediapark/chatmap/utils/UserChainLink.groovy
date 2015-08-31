@@ -9,7 +9,7 @@ class UserChainLink {
 
     User user
     boolean isCenter
-    Map<User, Double> connections
+    Map<Long, Double> connections
     Double avgDist
 
     public UserChainLink(User user) {
@@ -20,7 +20,7 @@ class UserChainLink {
     }
 
 
-    public void setConnections(Map<User, Double> connections) {
+    public void setConnections(Map<Long, Double> connections) {
         this.connections = connections
         if (connections) {
             this.avgDist = this.connections.values().sum() / this.connections.size()

@@ -13,7 +13,11 @@ class MapService {
         //prefetching all users not to do this many times in recursive method
         def allUsers = User.all
         Set<UserChainLink> usersChain = getChainRecur(me, allUsers)
-        //chain acquired, time to find chain center
+
+        //finalize bidirectional relations
+        postRecurMapMerge(usersChain)
+
+        //chain ready, time to find chain center
         UserChainLink center = null
 
         GParsPool.withPool {
@@ -32,6 +36,21 @@ class MapService {
         usersChain
     }
 
+    private void postRecurMapMerge(Set<UserChainLink> usersChain) {
+        Map<Long, UserChainLink> idToLink = usersChain.collectEntries { [(it.user.id): it] }
+        // add additional users to everybody because the distance is a bidirectional
+        //relationship
+        def millis = System.currentTimeMillis()
+        idToLink.each { Long id, UserChainLink link ->
+            GParsPool.withPool {
+                link.connections.keySet().eachParallel { Long key ->
+                    idToLink[(key)]?.connections << [(id): link.connections[(key)]]
+                }
+            }
+        }
+        log.debug("Extra map-merge took ${(System.currentTimeMillis() - millis)} ms")
+    }
+
     Set<UserChainLink> getChainRecur(User user, List<User> allUsers) {
         //all users close to one currently explored
         Set<User> closeUsers = [] as Set
@@ -43,13 +62,12 @@ class MapService {
         }
         def userChainLink = new UserChainLink(user)
         userChainLink.connections = closeUsers.collectEntries {
-            [(it): DistanceCalc.getHaversineDistance(user, (User) it)]
+            [(it.id): DistanceCalc.getHaversineDistance(user, (User) it)]
         }
         Set<UserChainLink> set = [userChainLink]
         //removing user from all users list since we already know everybody they are close to
         //and this prevent infinite recursion
         allUsers.remove(user)
-
         closeUsers.each { set.addAll getChainRecur((User) it, allUsers) }
 
         return set

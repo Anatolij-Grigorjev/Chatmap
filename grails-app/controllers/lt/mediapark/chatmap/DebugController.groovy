@@ -144,8 +144,8 @@ class DebugController {
                 user.emoji = emojis[rnd.nextInt(emojis.size())]
                 user.save()
             }
-            user.lat = latOrigin - (rnd.nextDouble() / rnd.nextInt(10000))
-            user.lng = lngOrigin + (rnd.nextDouble() / rnd.nextInt(10000))
+            user.lat = latOrigin - (rnd.nextDouble() / rnd.nextInt(1700))
+            user.lng = lngOrigin + (rnd.nextDouble() / rnd.nextInt(1900))
             result << user
         }
         def json = result.collect { converterService.userToJSONForMap(it) }

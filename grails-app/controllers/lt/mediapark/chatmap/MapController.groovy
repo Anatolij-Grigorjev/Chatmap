@@ -13,6 +13,9 @@ class MapController {
     def index = {
 
         def user = usersService.get(params.id)
+        if (!user) {
+            return render(status: 403)
+        }
         Collection<UserChainLink> usersChain = mapService.getChainFor(user)
 
 //        def (minLat, minLng) = getExtremePoint(usersChain, 'min')
