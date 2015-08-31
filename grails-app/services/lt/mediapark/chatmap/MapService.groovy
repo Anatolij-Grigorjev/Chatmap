@@ -15,6 +15,8 @@ class MapService {
         Set<UserChainLink> usersChain = getChainRecur(me, allUsers)
 
         //finalize bidirectional relations
+        // called separately form main recur code
+        // not to end up being called many times over
         postRecurMapMerge(usersChain)
 
         //chain ready, time to find chain center
