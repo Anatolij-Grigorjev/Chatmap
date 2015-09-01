@@ -20,6 +20,7 @@ class User {
         lat && lng
     }
 
+
     boolean equals(o) {
         if (this.is(o)) return true
         if (!(o instanceof User)) return false
@@ -47,5 +48,18 @@ class User {
         result = 31 * result + (id != null ? id.hashCode() : 0)
         result = 31 * result + (version != null ? version.hashCode() : 0)
         return result
+    }
+
+    @Override
+    public String toString() {
+        return """\
+        User{
+            id=$id,
+            name='$name',
+            gender=$gender,
+            wantsNotifications=$wantsNotifications,
+            lat=$lat,
+            lng=$lng
+        }"""
     }
 }

@@ -12,12 +12,16 @@ class MapService {
 
         //prefetching all users not to do this many times in recursive method
         def allUsers = User.all
+        def millis = System.currentTimeMillis()
         Set<UserChainLink> usersChain = getChainRecur(me, allUsers)
+        log.debug "Recursive chain generating took ${System.currentTimeMillis() - millis} ms"
 
         //finalize bidirectional relations
-        // called separately form main recur code
+        // called separately from main recur code
         // not to end up being called many times over
+        millis = System.currentTimeMillis()
         postRecurMapMerge(usersChain)
+        log.debug "Extra map-merge took ${System.currentTimeMillis() - millis} ms"
 
         //chain ready, time to find chain center
         UserChainLink center = null
@@ -27,12 +31,14 @@ class MapService {
             int max = usersChain.collectParallel { UserChainLink link -> link.connections.size() }.maxParallel()
             Set<UserChainLink> mostConnected =
                     usersChain.findAllParallel { UserChainLink link -> link.connections.size() >= max }
-            log.debug("Largest connection size was ${max}, spotted in ${mostConnected.size()} users")
             //find the smallest average distance
             double minAvgDist = mostConnected.collectParallel { UserChainLink link -> link.avgDist }.minParallel()
             center = mostConnected.findParallel { UserChainLink link -> link.avgDist == minAvgDist }
-            log.debug("Min average distance was ${minAvgDist}, first spotted in ${center}")
+
+            log.debug("Largest connection size was ${max}, spotted in ${mostConnected.size()}/${usersChain.size()} users")
+            log.debug("Min average distance was ${minAvgDist}, first spotted in ${center.user}")
         }
+
         center?.isCenter = true
 
         usersChain
@@ -42,7 +48,6 @@ class MapService {
         Map<Long, UserChainLink> idToLink = usersChain.collectEntries { [(it.user.id): it] }
         // add additional users to everybody because the distance is a bidirectional
         //relationship
-        def millis = System.currentTimeMillis()
         idToLink.each { Long id, UserChainLink link ->
             GParsPool.withPool {
                 link.connections.keySet().eachParallel { Long key ->
@@ -50,7 +55,6 @@ class MapService {
                 }
             }
         }
-        log.debug("Extra map-merge took ${(System.currentTimeMillis() - millis)} ms")
     }
 
     Set<UserChainLink> getChainRecur(User user, List<User> allUsers) {
