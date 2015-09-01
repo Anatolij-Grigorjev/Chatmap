@@ -78,12 +78,14 @@ class ChatService {
         message.save(flush: true)
         if (receiver.deviceToken && receiver.wantsNotifications && this.apnsManager) {
             sendNotification(receiver.deviceToken) { ApnsPayloadBuilder builder ->
-                boolean smallText = text.size() < MAX_MESSAGE_CHARS
+                String photoText = message.picture ? '[PHOTO]' : ''
+                boolean smallText = (photoText + text).size() < MAX_MESSAGE_CHARS
                 //total message cannot exceed 250 bytes
                 builder.with {
-                    alertBody = "${sender.name}: " +
-                            "${text.subSequence(0, smallText ? text.size() : MAX_MESSAGE_CHARS)}" +
-                            "${smallText ? '' : '...'}" //50-53 bytes max
+                    alertBody = "${sender.name}: "
+                    +photoText
+                    +"${text.subSequence(0, smallText ? text.size() : MAX_MESSAGE_CHARS - photoText.length())}"
+                    +"${smallText ? '' : '...'}" //50-53 bytes max
                     addCustomProperty('senderId', sender.id) //8 + 8 bytes
                     addCustomProperty('senderGender', sender.gender.literal) //12 + 1 bytes
                     addCustomProperty('senderEmoji', sender.emoji) //11 + 4 bytes
