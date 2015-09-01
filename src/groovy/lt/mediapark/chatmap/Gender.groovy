@@ -5,9 +5,19 @@ package lt.mediapark.chatmap
  */
 public enum Gender {
 
-    M, F
+    M('M'), F('F')
+
+    private String literal
+
+    private Gender(String literal) {
+        this.literal = literal
+    }
 
     static boolean isValid(String genderString) {
-        values().any { it.toString() == genderString }
+        values().any { it.literal == genderString }
+    }
+
+    public String getLiteral() {
+        return literal
     }
 }

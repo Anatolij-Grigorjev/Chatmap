@@ -1,5 +1,6 @@
 package lt.mediapark.chatmap
 
+import com.relayrides.pushy.apns.util.ApnsPayloadBuilder
 import grails.transaction.Transactional
 import lt.mediapark.chatmap.chat.ChatMessage
 import org.springframework.web.multipart.MultipartFile
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletRequest
 class ChatService {
 
     def usersService
+    public static final Integer MAX_MESSAGE_CHARS = 50
 
     ChatMessage getLatestMessage(User requestor, User other) {
         def c = Calendar.getInstance()
@@ -74,5 +76,19 @@ class ChatService {
         ChatMessage message = new ChatMessage(sender: sender, receiver: receiver, text: text, picture: picture)
         message.sendDate = new Date()
         message.save(flush: true)
+        if (receiver.deviceToken && receiver.wantsNotifications && this.apnsManager) {
+            sendNotification(receiver.deviceToken) { ApnsPayloadBuilder builder ->
+                boolean smallText = text.size() < MAX_MESSAGE_CHARS
+                //total message cannot exceed 250 bytes
+                builder.with {
+                    alertBody = "${sender.name}: " +
+                            "${text.subSequence(0, smallText ? text.size() : MAX_MESSAGE_CHARS)}" +
+                            "${smallText ? '' : '...'}" //50-53 bytes max
+                    addCustomProperty('senderId', sender.id) //8 + 8 bytes
+                    addCustomProperty('senderGender', sender.gender.literal) //12 + 1 bytes
+                    addCustomProperty('senderEmoji', sender.emoji) //11 + 4 bytes
+                }
+            }
+        }
     }
 }

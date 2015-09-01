@@ -33,7 +33,7 @@ class BootStrap {
             pushManagerDev?.start()
             log.debug("Push manager ${pushManagerDev?.name} initialized!")
         }
-
+        grailsApplication.allArtefacts.each { klass -> addApnsMethods(klass) }
     }
 
     private PushManager buildPushy(ConfigObject grails, String env) {
