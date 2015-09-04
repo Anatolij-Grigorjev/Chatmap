@@ -41,7 +41,7 @@ class ChatService {
     }
 
     List<ChatMessage> getChatHistory(User requestor, User other, Date before, int limit) {
-        def historyMessages = (List) ChatMessage.createCriteria().list {
+        def historyMessages = ChatMessage.createCriteria().list {
             or {
                 and {
                     eq('sender.id', requestor.id)
@@ -53,9 +53,10 @@ class ChatService {
                 }
             }
             le('created', before)
-            order('sendDate', 'asc')
+            order('sendDate', 'desc')
             maxResults(limit)
-        }
+        } as List<ChatMessage>
+        historyMessages.reverse(true)
         def receivedMessages = historyMessages.findAll { ChatMessage message -> requestor == message.receiver }
         receivedMessages.each { ChatMessage msg -> if (!msg.receiveDate) msg.receiveDate = new Date() }
         ChatMessage.saveAll(receivedMessages)
