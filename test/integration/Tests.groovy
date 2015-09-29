@@ -39,10 +39,11 @@ import groovy.io.FileType
 ////def factorial = { n -> fact(n, 1G)}
 //println fact(20, 1G) // => 2432902008176640000
 
-String query = 'bs_iv_rst_skol_sar'
+String query = 'banko p'
 def baseDir = new File("/Users/anatolij/Downloads/lt")
 def countFiles = 0
 def countBytes = 0
+def countFinds = 0
 baseDir.eachFileRecurse(FileType.ANY) { file ->
     if (file.isFile()) {
         countFiles++
@@ -50,9 +51,11 @@ baseDir.eachFileRecurse(FileType.ANY) { file ->
         countBytes += bytes.length
         def contents = new String(bytes).toLowerCase()
         if (contents.contains(query) || file.name.contains(query)) {
+            countFinds++;
             println "You should read the file ${file.name} at ${file.absolutePath}"
         }
     }
 }
 println "Finished analyzing ${countFiles} files with a total of " +
-        "${countBytes} bytes (averaging ${countBytes / countFiles} bytes per file)"
+        "${countBytes} bytes (averaging ${countBytes / countFiles} bytes per file)\n" +
+        "Found ${countFinds} file(-s) matching query."

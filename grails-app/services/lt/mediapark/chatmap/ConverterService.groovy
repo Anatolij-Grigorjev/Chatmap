@@ -53,8 +53,8 @@ class ConverterService {
         if (chatMessage?.id) map['id'] = chatMessage.id
         if (chatMessage?.receiver) map['receiver'] = msgUserToJSON(chatMessage.receiver)
         if (chatMessage?.sender) map['sender'] = msgUserToJSON(chatMessage.sender)
-        if (chatMessage?.sendDate) map['sendDate'] = chatMessage.sendDate
-        if (chatMessage?.receiveDate) map['receiveDate'] = chatMessage.receiveDate
+        if (chatMessage?.sendDate) map['sendDate'] = chatMessage.sendDate?.time
+        if (chatMessage?.receiveDate) map['receiveDate'] = chatMessage.receiveDate?.time
         if (chatMessage?.text) map['text'] = chatMessage.text
         if (chatMessage?.picture) map['picId'] = chatMessage.picture.id
 
