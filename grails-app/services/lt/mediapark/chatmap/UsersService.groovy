@@ -3,8 +3,12 @@ package lt.mediapark.chatmap
 import grails.transaction.Transactional
 import lt.mediapark.chatmap.utils.Converter
 
+import java.util.concurrent.atomic.AtomicLong
+
 @Transactional
 class UsersService {
+
+    AtomicLong usersCounter = new AtomicLong(10)
 
     def User get(def anyUserId) {
         Long userId = Converter.coerceToLong(anyUserId)
@@ -35,15 +39,19 @@ class UsersService {
         user.save(flush: true)
     }
 
-    User createUser(Map userInfo) {
-        User user = new User().with {
-            name = userInfo.name
-            lat = userInfo.lat
-            lng = userInfo.lng
-            emoji = userInfo.emoji
-            gender = Gender.isValid(userInfo.gender) ?
-                    Gender.valueOf(userInfo.gender) :
-                    Gender.M
+    /**
+     * Get a user or make a new default one if not there yet
+     * @param uuid the UUID of the (new) user
+     * @return the (new) user
+     */
+    def gatherUser(def uuid) {
+        def user = User.findByUuid(uuid)
+        if (!user) {
+            user = new User(uuid: uuid
+                    , emoji: 1
+                    , gender: Gender.M
+                    , name: 'User-' + usersCounter.andIncrement
+            )
         }
         user.save(flush: true)
     }

@@ -6,11 +6,14 @@ class User {
         gender nullable: false
         emoji nullable: false
         deviceToken unique: true
+        uuid nullable: false, unique: true
     }
 
+
+    String uuid
     String deviceToken
     String name
-    String emoji
+    Long emoji
     Gender gender
     Double lat
     Double lng

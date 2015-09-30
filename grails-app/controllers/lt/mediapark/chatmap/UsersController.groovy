@@ -13,18 +13,12 @@ class UsersController {
             create: 'POST'
     ]
 
-    def create = {
-        boolean enoughInfo = (request.JSON
-                && request.JSON?.name
-                && (request.JSON?.lat != null)
-                && (request.JSON?.lng != null)
-                && request.JSON?.emoji
-                && request.JSON?.gender
-        )
-        if (!enoughInfo) {
-            return render(status: 400, "Not enough information to create a user!")
+    def auth = {
+        def uuid = params.id
+        if (!uuid) {
+            return render(status: 400, text: "Lackluster identifier!")
         }
-        def user = usersService.createUser(request.JSON)
+        def user = usersService.gatherUser(uuid)
         def map = converterService.userToJSONForMap(user)
         render map as JSON
     }
