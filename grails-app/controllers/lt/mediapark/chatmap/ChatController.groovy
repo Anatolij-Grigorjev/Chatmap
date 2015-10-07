@@ -2,6 +2,7 @@ package lt.mediapark.chatmap
 
 import grails.converters.JSON
 import lt.mediapark.chatmap.chat.ChatMessage
+import lt.mediapark.chatmap.utils.Converter
 
 class ChatController {
 
@@ -23,7 +24,7 @@ class ChatController {
 
             def user1 = usersService.get(params.id1)
             def user2 = usersService.get(params.id2)
-            Date time = params.time ?: new Date()
+            Date time = new Date(Converter.coerceToLong(params.time)) ?: new Date()
             Integer limit = Integer.parseInt(params.limit ?: "50")
 
             def history = chatService.getChatHistory(
