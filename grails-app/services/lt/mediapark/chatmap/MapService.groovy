@@ -16,7 +16,7 @@ class MapService {
         }
         //prefetching all users not to do this many times in recursive method
         // (though must filter out those w/o coordinates)
-        def allUsers = User.findAll { it.hasLocation() }
+        def allUsers = User.findAllByLatIsNotNullAndLngIsNotNull()
         def millis = System.currentTimeMillis()
         Set<UserChainLink> usersChain = getChainRecur(me, allUsers)
         log.debug "Recursive chain generating took ${System.currentTimeMillis() - millis} ms"
