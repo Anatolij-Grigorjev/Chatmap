@@ -24,7 +24,8 @@ class ChatController {
 
             def user1 = usersService.get(params.id1)
             def user2 = usersService.get(params.id2)
-            Date time = new Date(Converter.coerceToLong(params.time)) ?: new Date()
+            Long timeLong = Converter.coerceToLong params.time
+            Date time = timeLong ? new Date(timeLong) : new Date()
             Integer limit = Integer.parseInt(params.limit ?: "50")
 
             def history = chatService.getChatHistory(

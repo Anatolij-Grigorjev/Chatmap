@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest
 @Transactional
 class ChatService {
 
+    public static final long GLOBAL_CHAT_USER_ID = 999
     def usersService
     public static final Integer MAX_MESSAGE_CHARS = 50
 
@@ -41,17 +42,23 @@ class ChatService {
     }
 
     List<ChatMessage> getChatHistory(User requestor, User other, Date before, int limit) {
-        def historyMessages = ChatMessage.createCriteria().list {
-            or {
-                and {
-                    eq('sender.id', requestor.id)
-                    eq('receiver.id', other.id)
-                }
-                and {
-                    eq('sender.id', other.id)
-                    eq('receiver.id', requestor.id)
-                }
+        Closure criteria = {
+            and {
+                eq('sender.id', requestor.id)
+                eq('receiver.id', other.id)
             }
+            and {
+                eq('sender.id', other.id)
+                eq('receiver.id', requestor.id)
+            }
+        }
+        if (other.id == GLOBAL_CHAT_USER_ID) {
+            criteria = {
+                eq('receiver.id', other.id)
+            }
+        }
+        def historyMessages = ChatMessage.createCriteria().list {
+            or criteria
             le('created', before)
             order('sendDate', 'desc')
             maxResults(limit)
@@ -93,5 +100,6 @@ class ChatService {
                 }
             }
         }
+        message
     }
 }

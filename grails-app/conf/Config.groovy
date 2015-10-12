@@ -121,6 +121,10 @@ log4j.main = {
     //    console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
     //}
 
+    // Enable Hibernate SQL logging with param values
+//    trace 'org.hibernate.type'
+//    debug 'org.hibernate.SQL'
+
     debug 'grails.app.controllers',        // controllers
             'grails.app.services',
             'grails.app.filters',

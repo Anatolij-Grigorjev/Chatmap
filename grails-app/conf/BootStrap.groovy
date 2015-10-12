@@ -6,6 +6,9 @@ import com.relayrides.pushy.apns.util.ApnsPayloadBuilder
 import com.relayrides.pushy.apns.util.SSLContextUtil
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.util.TokenUtil
+import groovy.sql.Sql
+import lt.mediapark.chatmap.ChatService
+import lt.mediapark.chatmap.User
 
 import javax.net.ssl.SSLHandshakeException
 
@@ -16,6 +19,8 @@ class BootStrap {
 
     PushManager pushManagerDev
     PushManager pushManagerProd
+
+    def dataSource
 
     def init = { servletContext ->
 
@@ -34,6 +39,28 @@ class BootStrap {
             log.debug("Push manager ${pushManagerDev?.name} initialized!")
         }
         grailsApplication.allArtefacts.each { klass -> addApnsMethods(klass) }
+
+        Sql sql = new Sql(dataSource)
+
+        sql.executeInsert("INSERT INTO user (" +
+                "id" +
+                ", name" +
+                ", emoji" +
+                ", gender" +
+                ", uuid" +
+                ", version" +
+                ") " +
+                "VALUES (" +
+                ":id" +
+                ", 'Global Users Chat'" +
+                ", 1" +
+                ", 'M'" +
+                ", :uuid" +
+                ", 1" +
+                ")", [uuid: UUID.randomUUID().toString(), id: ChatService.GLOBAL_CHAT_USER_ID])
+
+        log.info("Initialized global users chat: ${User.get(ChatService.GLOBAL_CHAT_USER_ID)}")
+
     }
 
     private PushManager buildPushy(ConfigObject grails, String env) {
