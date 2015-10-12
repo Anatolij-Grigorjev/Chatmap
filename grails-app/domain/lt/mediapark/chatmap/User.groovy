@@ -47,7 +47,7 @@ class User {
         result = 31 * result + name.hashCode()
         result = 31 * result + emoji.hashCode()
         result = 31 * result + gender.hashCode()
-        result = 31 * result + wantsNotifications.hashCode()
+        result = 31 * result + (wantsNotifications != null ? wantsNotifications.hashCode() : 0)
         result = 31 * result + (id != null ? id.hashCode() : 0)
         result = 31 * result + (version != null ? version.hashCode() : 0)
         return result

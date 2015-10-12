@@ -31,22 +31,24 @@ class MapService {
         //chain ready, time to find chain center
         UserChainLink center = null
 
-        GParsPool.withPool {
-            //filter to users with most connections
-            int max = usersChain.collectParallel { UserChainLink link -> link.connections.size() }.maxParallel()
+        //filter to users with most connections
+        if (usersChain) {
+            int max = usersChain.collect { UserChainLink link -> link.connections.size() }.max()
             Set<UserChainLink> mostConnected =
-                    usersChain.findAllParallel { UserChainLink link -> link.connections.size() >= max }
+                    usersChain.findAll { UserChainLink link -> link.connections.size() >= max }
             //find the smallest average distance
-            double minAvgDist = mostConnected.collectParallel { UserChainLink link -> link.avgDist }.minParallel()
-            center = mostConnected.findParallel { UserChainLink link -> link.avgDist == minAvgDist }
+            double minAvgDist = mostConnected.collect { UserChainLink link -> link.avgDist }.min()
+            center = mostConnected.find { UserChainLink link -> link.avgDist == minAvgDist }
 
             log.debug("Largest connection size was ${max}, spotted in ${mostConnected.size()}/${usersChain.size()} users")
             log.debug("Min average distance was ${minAvgDist}, first spotted in ${center.user}")
+
+            center?.isCenter = true
+
+            usersChain
+        } else {
+            Collections.EMPTY_SET
         }
-
-        center?.isCenter = true
-
-        usersChain
     }
 
     private void postRecurMapMerge(Set<UserChainLink> usersChain) {
@@ -54,10 +56,8 @@ class MapService {
         // add additional users to everybody because the distance is a bidirectional
         //relationship
         idToLink.each { Long id, UserChainLink link ->
-            GParsPool.withPool {
-                link.connections.keySet().eachParallel { Long key ->
-                    idToLink[(key)]?.connections << [(id): link.connections[(key)]]
-                }
+            link.connections.keySet().each { Long key ->
+                idToLink[(key)]?.connections << [(id): link.connections[(key)]]
             }
         }
     }
@@ -65,12 +65,10 @@ class MapService {
     Set<UserChainLink> getChainRecur(User user, List<User> allUsers) {
         //all users close to one currently explored
         Set<User> closeUsers = [] as Set
-        GParsPool.withPool {
-            List closeUsersList = (List) allUsers.findAllParallel {
-                it != user && DistanceCalc.getHaversineDistance((User) it, user) < 200
-            }
-            closeUsers.addAll(closeUsersList)
+        List closeUsersList = (List) allUsers.findAll {
+            (it != user) && (DistanceCalc.getHaversineDistance((User) it, user) < 200)
         }
+        closeUsers.addAll(closeUsersList)
         def userChainLink = new UserChainLink(user)
         userChainLink.connections = closeUsers.collectEntries {
             [(it.id): DistanceCalc.getHaversineDistance(user, (User) it)]

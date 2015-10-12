@@ -1,7 +1,6 @@
 package lt.mediapark.chatmap
 
 import grails.converters.JSON
-import groovyx.gpars.GParsPool
 import lt.mediapark.chatmap.utils.DistanceCalc
 import lt.mediapark.chatmap.utils.UserChainLink
 
@@ -18,16 +17,17 @@ class MapController {
             return render(status: 403)
         }
         Collection<UserChainLink> usersChain = mapService.getChainFor(user)
+        if (!usersChain) {
+            return [] as JSON
+        }
 
 //        def (minLat, minLng) = getExtremePoint(usersChain, 'min')
         def (maxLat, maxLng) = mapService.getExtremePoint(usersChain.user, 'max')
 
         //deciding center and excluding those too far away
         UserChainLink center = null
-        GParsPool.withPool {
-            center = usersChain.findParallel { it.isCenter } as UserChainLink
-            usersChain = usersChain.findAllParallel { DistanceCalc.getHaversineDistance(center.user, it.user) < 1500 }
-        }
+        center = usersChain.find { it.isCenter } as UserChainLink
+        usersChain = usersChain.findAll { DistanceCalc.getHaversineDistance(center.user, it.user) < 1500 }
 
         //set correct margin from group center to let everybody see stuff
         //from central chain link
@@ -41,9 +41,7 @@ class MapController {
         target.maxLat = (center?.user?.lat + marginsLat)
         target.maxLng = (center?.user?.lng + marginsLng)
 
-        GParsPool.withPool {
-            target.users = usersChain.collectParallel { converterService.userToJSONForMap(it) }
-        }
+        target.users = usersChain.collect { converterService.userToJSONForMap(it) }
 
         render target as JSON
     }

@@ -83,8 +83,10 @@ class DebugController {
                 user.uuid = UUID.randomUUID()
                 user.save()
             }
-            user.lat = latOrigin - (rnd.nextDouble() / rnd.nextInt(1700))
-            user.lng = lngOrigin + (rnd.nextDouble() / rnd.nextInt(1900))
+            if (user.id != ChatService.GLOBAL_CHAT_USER_ID) {
+                user.lat = latOrigin - (rnd.nextDouble() / rnd.nextInt(1700))
+                user.lng = lngOrigin + (rnd.nextDouble() / rnd.nextInt(1900))
+            }
             result << user
         }
         def json = result.collect { converterService.userToJSONForMap(it) }
