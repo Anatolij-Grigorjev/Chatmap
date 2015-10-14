@@ -16,10 +16,10 @@ class MapController {
         if (!user) {
             return render(status: 403)
         }
-        Collection<UserChainLink> usersChain = mapService.getChainFor(user)
-        if (!usersChain) {
-            return [] as JSON
+        if (!user.hasLocation()) {
+            return render([]) as JSON
         }
+        Collection<UserChainLink> usersChain = mapService.getChainFor(user)
 
 //        def (minLat, minLng) = getExtremePoint(usersChain, 'min')
         def (maxLat, maxLng) = mapService.getExtremePoint(usersChain.user, 'max')

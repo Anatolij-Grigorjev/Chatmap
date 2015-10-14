@@ -50,7 +50,7 @@ class UsersService {
             user = new User(uuid: uuid
                     , emoji: 1
                     , gender: Gender.M
-                    , name: 'User-' + usersCounter.andIncrement
+                    , name: 'User-' + usersCounter.getAndIncrement()
             )
         }
         user.save(flush: true)

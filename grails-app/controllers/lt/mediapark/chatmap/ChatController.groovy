@@ -3,6 +3,7 @@ package lt.mediapark.chatmap
 import grails.converters.JSON
 import lt.mediapark.chatmap.chat.ChatMessage
 import lt.mediapark.chatmap.utils.Converter
+import org.springframework.web.multipart.MultipartRequest
 
 class ChatController {
 
@@ -46,6 +47,9 @@ class ChatController {
 
     def send = {
         def senderId = params.requestor
+        if (ChatService.GLOBAL_CHAT_USER_ID.equals(Converter.coerceToLong(senderId))) {
+            return render(status: 400, text: "The Global Chat User is a concept, not a person! It cannot send messages.")
+        }
         def receiverId = params.id
         if (params.text) {
             def text = URLDecoder.decode(params.text, "UTF-8")
@@ -54,6 +58,10 @@ class ChatController {
             request['text'] = text
         } else if (request.JSON) {
             request['text'] = request.JSON.text
+        }
+        if (!request['text'] && !(request instanceof MultipartRequest && request.getFile("picture"))) {
+            return render(status: 400, text: "The request did not contain either text or an image. Empty messages " +
+                    "not permitted.")
         }
         ChatMessage message = chatService.sendMessage(senderId, receiverId, request)
         def map = converterService.chatMessageToJSON(message)
