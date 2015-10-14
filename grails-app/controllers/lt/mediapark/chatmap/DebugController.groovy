@@ -84,8 +84,8 @@ class DebugController {
                 user.save()
             }
             if (user.id != ChatService.GLOBAL_CHAT_USER_ID) {
-                user.lat = latOrigin - (rnd.nextDouble() / rnd.nextInt(1700))
-                user.lng = lngOrigin + (rnd.nextDouble() / rnd.nextInt(1900))
+                user.lat = latOrigin - (rnd.nextDouble() / (1 + rnd.nextInt(1700)))
+                user.lng = lngOrigin + (rnd.nextDouble() / (1 + rnd.nextInt(1900)))
             }
             result << user
         }

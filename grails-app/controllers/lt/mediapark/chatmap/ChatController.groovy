@@ -59,6 +59,10 @@ class ChatController {
         } else if (request.JSON) {
             request['text'] = request.JSON.text
         }
+        if (params.lat && params.lng) {
+            request['lat'] = Double.parseDouble(params.lat.toString())
+            request['lng'] = Double.parseDouble(params.lng.toString())
+        }
         if (!request['text'] && !(request instanceof MultipartRequest && request.getFile("picture"))) {
             return render(status: 400, text: "The request did not contain either text or an image. Empty messages " +
                     "not permitted.")

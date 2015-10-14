@@ -7,6 +7,14 @@ class UrlMappings {
             }
         }
 
+        "/picture/$id" {
+            constraints {
+                id matches: /\d+/
+            }
+            controller = 'picture'
+            action = 'index'
+        }
+
         "/picture/upload/$lat/$lng" {
             controller = 'picture'
             action = 'upload'

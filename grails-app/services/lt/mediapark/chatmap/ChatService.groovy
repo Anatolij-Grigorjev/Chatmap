@@ -79,6 +79,12 @@ class ChatService {
         if (request instanceof MultipartRequest) {
             MultipartFile file = request.getFile("picture")
             picture = new Picture(name: file.name, data: file.bytes)
+            Double lat = request['lat']
+            Double lng = request['lng']
+            if (lat && lng) {
+                picture.lat = lat
+                picture.lng = lng
+            }
             picture = picture.save()
         }
         ChatMessage message = new ChatMessage(sender: sender, receiver: receiver, text: text, picture: picture)
