@@ -58,9 +58,12 @@
 //        "${countBytes} bytes (averaging ${countBytes / countFiles} bytes per file)\n" +
 //        "Found ${countFinds} file(-s) matching query."
 
+//def baseFile = new File("/Users/anatolij/Downloads/SEB_2015_10_12.acc")
+//int index = 1;
+//baseFile.eachLine { line ->
+//    println "Line number ${index++} - line length ${line.length()} - line tabs count: ${line.count('\t')}"
+//}
 
-def baseFile = new File("/Users/anatolij/Downloads/SEB_2015_10_12.acc")
-int index = 1;
-baseFile.eachLine { line ->
-    println "Line number ${index++} - line length ${line.length()} - line tabs count: ${line.count('\t')}"
+5.times {
+    println it
 }

@@ -65,7 +65,7 @@ class ChatController {
         }
         if (!request['text'] && !(request instanceof MultipartRequest && request.getFile("picture"))) {
             return render(status: 400, text: "The request did not contain either text or an image. Empty messages " +
-                    "not permitted.")
+                    "are not permitted.")
         }
         ChatMessage message = chatService.sendMessage(senderId, receiverId, request)
         def map = converterService.chatMessageToJSON(message)

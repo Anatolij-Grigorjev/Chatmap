@@ -6,6 +6,7 @@ import lt.mediapark.chatmap.utils.UserChainLink
 
 class MapController {
 
+
     def usersService
     def mapService
     def converterService
@@ -40,6 +41,9 @@ class MapController {
         target.minLng = (center?.user?.lng - marginsLng)
         target.maxLat = (center?.user?.lat + marginsLat)
         target.maxLng = (center?.user?.lng + marginsLng)
+
+        //update previous chain so that user can get notified when them chains change
+        Thread.start("${user.name}-CHAIN-NOTIFY") { mapService.notifyOfChainChanges(user, usersChain) }
 
         target.users = usersChain.collect { converterService.userToJSONForMap(it) }
 

@@ -56,7 +56,7 @@ class ConverterService {
         if (chatMessage?.sendDate) map['sendDate'] = chatMessage.sendDate?.time
         if (chatMessage?.receiveDate) map['receiveDate'] = chatMessage.receiveDate?.time
         if (chatMessage?.text) map['text'] = chatMessage.text
-        if (chatMessage?.picture) map['picId'] = chatMessage.picture.id
+        if (chatMessage?.picture) map['picture'] = pictureToJSONForMap(chatMessage?.picture)
 
         map
     }

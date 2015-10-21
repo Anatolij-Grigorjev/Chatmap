@@ -1,5 +1,7 @@
 package lt.mediapark.chatmap
 
+import com.google.common.collect.Sets
+import com.relayrides.pushy.apns.util.ApnsPayloadBuilder
 import grails.transaction.Transactional
 import groovyx.gpars.GParsPool
 import lt.mediapark.chatmap.utils.DistanceCalc
@@ -7,6 +9,10 @@ import lt.mediapark.chatmap.utils.UserChainLink
 
 @Transactional
 class MapService {
+
+    def usersService
+
+    static Map<Long, Set<Long>> lastUserChainIds = [:]
 
     Collection<UserChainLink> getChainFor(User me) {
 
@@ -90,5 +96,38 @@ class MapService {
 
         }
         [lat, lng]
+    }
+
+
+    def notifyOfChainChanges(User user, Collection<UserChainLink> newChain) {
+        def oldChain = lastUserChainIds[(user.id)]
+        if (oldChain) {
+            log.debug("Old chain size: ${oldChain.size()} - New chain size: ${newChain.size()}")
+            int sizeDiff = newChain.size() - oldChain.size()
+            //people were actually added to the chain, something noteworthy
+            if (sizeDiff > 0 && user.deviceToken) {
+                //this set is guaranteed to not be empty
+                def diffIds = Sets.difference(newChain.user.id as Set, oldChain) as List
+
+                //first can be named, others grouped in notification
+                //searching for the name of the person through the chain is slow,
+                //but better than making another Hibernate session (this runs in a separate thread)
+                String firstName = newChain.find { it.user.id == diffIds[0] }?.user?.name
+                boolean manyIds = diffIds.size() > 1
+                String msgBody = firstName
+                +(manyIds ? " and ${diffIds.size() - 1} other(-s)" : "")
+                +" ha${manyIds ? 've' : 's'} joined your map group!"
+
+                sendNotification(user.deviceToken) { ApnsPayloadBuilder builder ->
+                    builder.with {
+                        alertBody = msgBody
+                        alertTitle = 'Map Group Update!'
+                        addCustomProperty('userId', user.id)
+                    }
+                }
+            }
+        }
+        //finish it all by moving what the old chain was
+        lastUserChainIds[(user.id)] = newChain.user.id as Set
     }
 }

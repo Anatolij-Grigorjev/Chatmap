@@ -157,7 +157,7 @@ class BootStrap {
             pushManagerDev.shutDown()
             //sleep after shutting down PUSHY to not leave Netty memory leaks
             //see https://github.com/relayrides/pushy/issues/29
-            Thread.sleep(2500)
+            Thread.sleep(5500)
         }
     }
 }
