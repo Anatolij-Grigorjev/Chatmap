@@ -38,6 +38,11 @@ grails.mime.types = [ // the first one is the default format
 grails.gorm.default.constraints = {
     '*'(nullable: true)
 }
+grails.gorm.default.mapping = {
+    dynamicUpdate(true)
+    dynamicInsert(true)
+    version(false)
+}
 
 // turn off silent GORM errors
 grails.gorm.failOnError = true

@@ -6,6 +6,11 @@ import lt.mediapark.chatmap.utils.UserChainLink
 
 class MapController {
 
+    static allowedMethods = [
+            index: 'GET',
+            all  : 'POST'
+    ]
+
 
     def usersService
     def mapService
@@ -48,6 +53,38 @@ class MapController {
         target.users = usersChain.collect { converterService.userToJSONForMap(it) }
 
         render target as JSON
+    }
+
+
+    def all = {
+
+        Double minLat = request.JSON.minLat
+        Double minLng = request.JSON.minLng
+        Double maxLat = request.JSON.maxLat
+        Double maxLng = request.JSON.maxLng
+
+        //swap if values not ordered good
+        if (minLat > maxLat) {
+            (minLat, maxLat) = [maxLat, minLat]
+        }
+        if (minLng > maxLng) {
+            (minLng, maxLng) = [maxLng, minLng]
+        }
+
+        def bounds = [minLat, minLng, maxLat, maxLng]
+
+        if (bounds.any { it == null }) {
+            return render(status: 400, text: "At least one of the 4 required coordinates was null!")
+        }
+
+        log.debug("Received bounds: ${bounds}")
+
+        Set<User> peopleInBounds = mapService.getInBounds(*bounds)
+
+
+        def result = peopleInBounds.collect { converterService.userToJSONForMap(it) }
+
+        render result as JSON
     }
 
 }

@@ -26,43 +26,44 @@ class MapService {
         def millis = System.currentTimeMillis()
         Set<UserChainLink> usersChain = getChainRecur(me, allUsers)
         log.debug "Recursive chain generating took ${System.currentTimeMillis() - millis} ms"
+        GParsPool.withPool {
+            //finalize bidirectional relations
+            // called separately from main recur code
+            // not to end up being called many times over
+            millis = System.currentTimeMillis()
+            postRecurMapMerge(usersChain)
+            log.debug "Extra map-merge took ${System.currentTimeMillis() - millis} ms"
 
-        //finalize bidirectional relations
-        // called separately from main recur code
-        // not to end up being called many times over
-        millis = System.currentTimeMillis()
-        postRecurMapMerge(usersChain)
-        log.debug "Extra map-merge took ${System.currentTimeMillis() - millis} ms"
+            //chain ready, time to find chain center
+            UserChainLink center = null
 
-        //chain ready, time to find chain center
-        UserChainLink center = null
+            //filter to users with most connections
+            if (usersChain) {
+                int max = usersChain.collectParallel { UserChainLink link -> link.connections.size() }.max()
+                Set<UserChainLink> mostConnected =
+                        usersChain.findAllParallel { UserChainLink link -> link.connections.size() >= max }
+                //find the smallest average distance
+                double minAvgDist = mostConnected.collectParallel { UserChainLink link -> link.avgDist }.min()
+                center = mostConnected.findParallel { UserChainLink link -> link.avgDist == minAvgDist }
 
-        //filter to users with most connections
-        if (usersChain) {
-            int max = usersChain.collect { UserChainLink link -> link.connections.size() }.max()
-            Set<UserChainLink> mostConnected =
-                    usersChain.findAll { UserChainLink link -> link.connections.size() >= max }
-            //find the smallest average distance
-            double minAvgDist = mostConnected.collect { UserChainLink link -> link.avgDist }.min()
-            center = mostConnected.find { UserChainLink link -> link.avgDist == minAvgDist }
+                log.debug("Largest connection size was ${max}, spotted in ${mostConnected.size()}/${usersChain.size()} users")
+                log.debug("Min average distance was ${minAvgDist}, first spotted in ${center.user}")
 
-            log.debug("Largest connection size was ${max}, spotted in ${mostConnected.size()}/${usersChain.size()} users")
-            log.debug("Min average distance was ${minAvgDist}, first spotted in ${center.user}")
+                center?.isCenter = true
 
-            center?.isCenter = true
-
-            usersChain
-        } else {
-            Collections.EMPTY_SET
+                return usersChain
+            } else {
+                return Collections.EMPTY_SET
+            }
         }
     }
 
-    private void postRecurMapMerge(Set<UserChainLink> usersChain) {
+    private static void postRecurMapMerge(Set<UserChainLink> usersChain) {
         Map<Long, UserChainLink> idToLink = usersChain.collectEntries { [(it.user.id): it] }
         // add additional users to everybody because the distance is a bidirectional
         //relationship
         idToLink.each { Long id, UserChainLink link ->
-            link.connections.keySet().each { Long key ->
+            link.connections.keySet().eachParallel { Long key ->
                 idToLink[(key)]?.connections << [(id): link.connections[(key)]]
             }
         }
@@ -89,13 +90,12 @@ class MapService {
     }
 
     def getExtremePoint(Collection<User> users, String extreme) {
-        Double lat = 0.0, lng = 0.0
         GParsPool.withPool {
+            Double lat = 0.0, lng = 0.0
             lat = users.lat."${extreme}Parallel"()
             lng = users.lng."${extreme}Parallel"()
-
+            return [lat, lng]
         }
-        [lat, lng]
     }
 
 
@@ -129,5 +129,16 @@ class MapService {
         }
         //finish it all by moving what the old chain was
         lastUserChainIds[(user.id)] = newChain.user.id as Set
+    }
+
+    Set<User> getInBounds(double minLat, double minLng, double maxLat, double maxLng) {
+        User.createCriteria().list {
+            and {
+                gte('lat', minLat)
+                gte('lng', minLng)
+                le('lat', maxLat)
+                le('lng', maxLng)
+            }
+        } as Set<User>
     }
 }

@@ -48,7 +48,6 @@ class BootStrap {
                 ", emoji" +
                 ", gender" +
                 ", uuid" +
-                ", version" +
                 ") " +
                 "VALUES (" +
                 ":id" +
@@ -56,7 +55,6 @@ class BootStrap {
                 ", 1" +
                 ", 'M'" +
                 ", :uuid" +
-                ", 1" +
                 ")", [uuid: UUID.randomUUID().toString(), id: ChatService.GLOBAL_CHAT_USER_ID])
 
         log.info("Initialized global users chat: ${User.get(ChatService.GLOBAL_CHAT_USER_ID)}")
