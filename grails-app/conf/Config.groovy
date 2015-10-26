@@ -133,6 +133,7 @@ log4j.main = {
     debug 'grails.app.controllers',        // controllers
             'grails.app.services',
             'grails.app.filters',
+            'grails.app.jobs',
             'grails.app'
 
     error 'org.codehaus.groovy.grails.web.servlet',        // controllers

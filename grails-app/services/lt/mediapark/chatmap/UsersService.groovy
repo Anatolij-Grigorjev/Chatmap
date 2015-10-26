@@ -55,4 +55,8 @@ class UsersService {
         }
         user.save(flush: true)
     }
+
+    def getUsersWithCoordinates() {
+        User.findAllByLatIsNotNullAndLngIsNotNull()
+    }
 }

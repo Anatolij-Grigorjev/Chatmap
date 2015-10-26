@@ -81,7 +81,6 @@ class MapController {
 
         Set<User> peopleInBounds = mapService.getInBounds(*bounds)
 
-
         def result = peopleInBounds.collect { converterService.userToJSONForMap(it) }
 
         render result as JSON

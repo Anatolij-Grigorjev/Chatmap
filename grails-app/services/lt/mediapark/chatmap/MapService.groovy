@@ -12,17 +12,20 @@ class MapService {
 
     def usersService
 
-    static Map<Long, Set<Long>> lastUserChainIds = [:]
+    public static Map<Long, Set<UserChainLink>> lastUserChain = Collections.synchronizedMap([:])
 
     Collection<UserChainLink> getChainFor(User me) {
-
         //if user lacks coordinates, they don't have a chain
         if (!me.hasLocation()) {
             return Collections.EMPTY_LIST
         }
+        lastUserChain[(me.id)] ?: generateNewChainFor(me)
+    }
+
+    def Collection<UserChainLink> generateNewChainFor(User me) {
         //prefetching all users not to do this many times in recursive method
         // (though must filter out those w/o coordinates)
-        def allUsers = User.findAllByLatIsNotNullAndLngIsNotNull()
+        def allUsers = usersService.usersWithCoordinates
         def millis = System.currentTimeMillis()
         Set<UserChainLink> usersChain = getChainRecur(me, allUsers)
         log.debug "Recursive chain generating took ${System.currentTimeMillis() - millis} ms"
@@ -50,8 +53,10 @@ class MapService {
                 log.debug("Min average distance was ${minAvgDist}, first spotted in ${center.user}")
 
                 center?.isCenter = true
-
-                return usersChain
+                //now that center is known, let's exclude those too far away
+                return usersChain.findAllParallel {
+                    DistanceCalc.getHaversineDistance(center.user, it.user) < 1500
+                } as Set<UserChainLink>
             } else {
                 return Collections.EMPTY_SET
             }
@@ -100,22 +105,21 @@ class MapService {
 
 
     def notifyOfChainChanges(User user, Collection<UserChainLink> newChain) {
-        def oldChain = lastUserChainIds[(user.id)]
+        def oldChain = lastUserChain[(user.id)]
         if (oldChain) {
             log.debug("Old chain size: ${oldChain.size()} - New chain size: ${newChain.size()}")
             int sizeDiff = newChain.size() - oldChain.size()
             //people were actually added to the chain, something noteworthy
             if (sizeDiff > 0 && user.deviceToken) {
                 //this set is guaranteed to not be empty
-                def diffIds = Sets.difference(newChain.user.id as Set, oldChain) as List
+                def diffs = Sets.difference(newChain as Set<UserChainLink>, oldChain) as List
 
                 //first can be named, others grouped in notification
-                //searching for the name of the person through the chain is slow,
-                //but better than making another Hibernate session (this runs in a separate thread)
-                String firstName = newChain.find { it.user.id == diffIds[0] }?.user?.name
-                boolean manyIds = diffIds.size() > 1
+                //lets use one of the new names
+                String firstName = diffs[0].user.name
+                boolean manyIds = diffs.size() > 1
                 String msgBody = firstName
-                +(manyIds ? " and ${diffIds.size() - 1} other(-s)" : "")
+                +(manyIds ? " and ${diffs.size() - 1} other(-s)" : "")
                 +" ha${manyIds ? 've' : 's'} joined your map group!"
 
                 sendNotification(user.deviceToken) { ApnsPayloadBuilder builder ->
@@ -127,8 +131,10 @@ class MapService {
                 }
             }
         }
-        //finish it all by moving what the old chain was
-        lastUserChainIds[(user.id)] = newChain.user.id as Set
+        //register the chain as latest for schmuck
+        //and for all those within the chain as well
+        lastUserChain[(user.id)] = (newChain as Set<UserChainLink>)
+        newChain.each { lastUserChain[(it.user.id)] = (newChain as Set<UserChainLink>) }
     }
 
     Set<User> getInBounds(double minLat, double minLng, double maxLat, double maxLng) {
