@@ -6,8 +6,8 @@ import lt.mediapark.chatmap.User
 class UserChainMakerJob {
     static triggers = {
         simple(
-                repeatInterval: 20000l, // execute job once every 20 seconds
-                startDelay: 20000l //execute job after 20 seconds of work
+                repeatInterval: 60000l, // execute job once every 60 seconds
+                startDelay: 30000l //execute job after 20 seconds of work
         )
     }
 
