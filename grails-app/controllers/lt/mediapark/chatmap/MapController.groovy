@@ -1,6 +1,7 @@
 package lt.mediapark.chatmap
 
 import grails.converters.JSON
+import lt.mediapark.chatmap.utils.Converter
 import lt.mediapark.chatmap.utils.DistanceCalc
 import lt.mediapark.chatmap.utils.UserChainLink
 
@@ -82,6 +83,20 @@ class MapController {
         Set<User> peopleInBounds = mapService.getInBounds(*bounds)
 
         def result = peopleInBounds.collect { converterService.userToJSONForMap(it) }
+
+        if (params.requestor) {
+            Long requestorId = Converter.coerceToLong(params.requestor)
+            def theChain = mapService.lastUserChain[(requestorId)]
+            //user has a chain, so we can mark those retrieved who are in it
+            def chainIds = theChain.user.id
+            if (theChain) {
+                result.findAll {
+                    map -> chainIds.contains(map.id)
+                }.each {
+                    it['inGroup'] = true
+                }
+            }
+        }
 
         render result as JSON
     }
