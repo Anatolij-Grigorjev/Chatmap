@@ -90,9 +90,9 @@ class MapController {
             //user has a chain, so we can mark those retrieved who are in it
             def chainIds = theChain.user.id
             if (theChain) {
-                result.findAll {
-                    map -> chainIds.contains(map.id)
-                }.each {
+                result.each { it['inGroup'] = false }
+                //now lets find those in the chain
+                result.findAll { map -> chainIds.contains(map.id) }.each {
                     it['inGroup'] = true
                 }
             }
