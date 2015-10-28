@@ -7,21 +7,23 @@ import lt.mediapark.chatmap.User
  */
 class UserChainLink {
 
-    User user
-    boolean isCenter
-    Map<Long, Double> connections
-    Double avgDist
+    private User user
+    private boolean isCenter
+    private Map<Long, Double> connections
+    private Double avgDist
 
     public UserChainLink(User user) {
         this.user = user
         isCenter = false
         connections = [:]
-        avgDist = BigDecimal.ZERO.doubleValue()
+        avgDist = 0.0
     }
 
 
     public void setConnections(Map<Long, Double> connections) {
         this.connections = connections
+        //make sure we aren't connected to ourselves
+        connections?.remove(user.id)
         if (connections) {
             this.avgDist = this.connections.values().sum() / this.connections.size()
         } else {
@@ -47,8 +49,6 @@ class UserChainLink {
 
     @Override
     public String toString() {
-        return "UserChainLink{" +
-                "user=" + user +
-                '}';
+        return "UserChainLink{user=${user.id}, connections=${connections}"
     }
 }

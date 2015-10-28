@@ -15,17 +15,22 @@ class DistanceCalc {
      * @return
      */
     public static Double getHaversineDistance(Double lat1, Double lng1, Double lat2, Double lng2) {
-        Double R = 6371 * 1000; // Radius of the earth in m
-        Double dLat = degToRad(lat2 - lat1);  //calc in rad
-        Double dLon = degToRad(lng2 - lng1);
-        Double a =
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                        Math.cos(degToRad(lat1)) * Math.cos(degToRad(lat2)) *
-                        Math.sin(dLon / 2) * Math.sin(dLon / 2)
-        ;
-        Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        Double d = R * c; // Distance in m
-        return d;
+
+        def distCalc = { Double lat1c, Double lng1c, Double lat2c, Double lng2c ->
+            Double R = 6371 * 1000; // Radius of the earth in m
+            Double dLat = degToRad(lat2c - lat1c);  //calc in rad
+            Double dLon = degToRad(lng2c - lng1c);
+            Double a =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                            Math.cos(degToRad(lat1c)) * Math.cos(degToRad(lat2c)) *
+                            Math.sin(dLon / 2) * Math.sin(dLon / 2)
+            ;
+            Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            Double d = R * c; // Distance in m
+            return d;
+        }.memoize()
+
+        return distCalc(lat1, lng1, lat2, lng2)
     }
 
     public static Double getHaversineDistance(User user1, User user2) {

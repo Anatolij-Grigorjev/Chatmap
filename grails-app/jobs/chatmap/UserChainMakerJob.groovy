@@ -4,13 +4,6 @@ import lt.mediapark.chatmap.User
 
 
 class UserChainMakerJob {
-    static triggers = {
-        simple(
-                repeatInterval: 60000l, // execute job once every 60 seconds
-                startDelay: 30000l //execute job after 20 seconds of work
-        )
-    }
-
     def usersService
     def mapService
 
@@ -23,18 +16,23 @@ class UserChainMakerJob {
             if (coordinatedUsers) {
                 log.debug("Starting CHAIN_MAKER for ${coordinatedUsers.size()} users!")
                 log.debug("clearing ${mapService.lastUserChain.size()} user chain links!")
-                mapService.lastUserChain.clear()
+                def now = System.currentTimeMillis()
+                //its important to replace the chains one at a time so as not to impede regular service
+                def staleChains = coordinatedUsers.id.collectEntries { [(it): true] }
                 int chains = 0
                 coordinatedUsers.each { user ->
-                    def lastChain = mapService.lastUserChain[(user.id)]
-                    if (!lastChain) {
+                    //replace old chains
+                    if (staleChains[(user.id)]) {
                         chains++
+                        //generate new chain
                         def chain = mapService.generateNewChainFor(user)
                         mapService.notifyOfChainChanges(user, chain)
+                        //mark as no longer stale for everybody involved
+                        chain.user.id.each { staleChains[(it)] = false }
                     }
                 }
                 if (chains) {
-                    log.debug("Created ${chains} new chains!")
+                    log.debug("Created ${chains} new chains in ${new Date().time - now}ms!")
                 }
             }
         }

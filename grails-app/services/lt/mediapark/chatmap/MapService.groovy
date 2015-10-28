@@ -27,15 +27,51 @@ class MapService {
         // (though must filter out those w/o coordinates)
         def allUsers = usersService.usersWithCoordinates
         def millis = System.currentTimeMillis()
-        Set<UserChainLink> usersChain = getChainRecur(me, allUsers)
+        Set<UserChainLink> usersChain = [] as Set<UserChainLink>
+        //recursively get the users chain. actually uses the trampoline technique, since
+        //the chain might get long and recursion would overflow
+        def getChainRecur
+        getChainRecur = { User user, List<User> remainingUsers, Set<UserChainLink> finalSet ->
+            //all users close to one currently explored form a chain link
+            def userChainLink = new UserChainLink(user)
+            def closeUsers = new LinkedList<User>()
+            def newConn = [:]
+            remainingUsers.each {
+                Double distance = DistanceCalc.getHaversineDistance(it, user)
+                if (distance < 200) {
+                    closeUsers << it
+                    newConn << [(it.id): distance]
+                }
+            }
+            userChainLink.connections = newConn
+            finalSet << userChainLink
+            //removing user from all users list since we already know everybody they are close to
+            remainingUsers.remove(user)
+            //any more unexplored users found to be close to this one
+            //deserve their own chain segments
+            while (closeUsers) {
+                def nextUser = closeUsers.get(0)
+                closeUsers.remove(0)
+                getChainRecur(nextUser, remainingUsers, finalSet)
+            }
+
+            return finalSet
+        }
+        allUsers.remove(me)
+        getChainRecur(me, allUsers, usersChain)
+
         log.debug "Recursive chain generating took ${System.currentTimeMillis() - millis} ms"
+        log.debug("Total users in chain: ${usersChain.size()}")
+
+        //finalize bidirectional relations
+        // called separately from main recur code
+        // not to end up being called many times over
+        millis = System.currentTimeMillis()
+        postRecurMapMerge(usersChain)
+        log.debug "Extra map-merge took ${System.currentTimeMillis() - millis} ms"
+
+        //concurrent search for the center
         GParsPool.withPool {
-            //finalize bidirectional relations
-            // called separately from main recur code
-            // not to end up being called many times over
-            millis = System.currentTimeMillis()
-            postRecurMapMerge(usersChain)
-            log.debug "Extra map-merge took ${System.currentTimeMillis() - millis} ms"
 
             //chain ready, time to find chain center
             UserChainLink center = null
@@ -63,40 +99,52 @@ class MapService {
         }
     }
 
+    /**
+     * Takes a chain and fills in any missing connections between users if even one side has
+     * a distance between the two
+     * @param usersChain the unfilled chain
+     */
     private static void postRecurMapMerge(Set<UserChainLink> usersChain) {
-        Map<Long, UserChainLink> idToLink = usersChain.collectEntries { [(it.user.id): it] }
+        //bi-directionality matters only when there is more than one
+        if (!usersChain || usersChain.size() == 1) {
+            return
+        }
+        //set up mapping before the loop to speed things along
+        Map<Long, UserChainLink> idToLinkMap = usersChain.collectEntries { [(it.user.id): it] }
         // add additional users to everybody because the distance is a bidirectional
         //relationship
-        idToLink.each { Long id, UserChainLink link ->
-            link.connections.keySet().eachParallel { Long key ->
-                idToLink[(key)]?.connections << [(id): link.connections[(key)]]
+        idToLinkMap.each { Long id, UserChainLink link ->
+            link.connections.keySet().each { Long userId ->
+                def targetLink = idToLinkMap[(userId)]
+                def linkDistance = link.connections[(userId)]
+                targetLink.connections.put(link.user.id, linkDistance)
             }
         }
     }
 
-    Set<UserChainLink> getChainRecur(User user, List<User> allUsers) {
-        //all users close to one currently explored
-        Set<User> closeUsers = [] as Set
-        List closeUsersList = (List) allUsers.findAll {
-            (it != user) && (DistanceCalc.getHaversineDistance((User) it, user) < 200)
-        }
-        closeUsers.addAll(closeUsersList)
-        def userChainLink = new UserChainLink(user)
-        userChainLink.connections = closeUsers.collectEntries {
-            [(it.id): DistanceCalc.getHaversineDistance(user, (User) it)]
-        }
-        Set<UserChainLink> set = [userChainLink]
-        //removing user from all users list since we already know everybody they are close to
-        //and this prevent infinite recursion
-        allUsers.remove(user)
-        closeUsers.each { set.addAll getChainRecur((User) it, allUsers) }
-
-        return set
-    }
+//    Set<UserChainLink> getChainRecur(User user, List<User> allUsers) {
+//        //all users close to one currently explored
+//        Set<User> closeUsers = [] as Set
+//        List closeUsersList = (List) allUsers.findAll {
+//            (it != user) && (DistanceCalc.getHaversineDistance((User) it, user) < 200)
+//        }
+//        closeUsers.addAll(closeUsersList)
+//        def userChainLink = new UserChainLink(user)
+//        userChainLink.connections = closeUsers.collectEntries {
+//            [(it.id): DistanceCalc.getHaversineDistance(user, (User) it)]
+//        }
+//        Set<UserChainLink> set = [userChainLink]
+//        //removing user from all users list since we already know everybody they are close to
+//        //and this prevent infinite recursion
+//        allUsers.remove(user)
+//        closeUsers.each { set.addAll getChainRecur((User) it, allUsers) }
+//
+//        return set
+//    }
 
     def getExtremePoint(Collection<User> users, String extreme) {
         GParsPool.withPool {
-            Double lat = 0.0, lng = 0.0
+            Double lat, lng
             lat = users.lat."${extreme}Parallel"()
             lng = users.lng."${extreme}Parallel"()
             return [lat, lng]

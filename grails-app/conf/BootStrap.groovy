@@ -1,3 +1,4 @@
+import chatmap.UserChainMakerJob
 import com.relayrides.pushy.apns.ApnsEnvironment
 import com.relayrides.pushy.apns.ApnsPushNotification
 import com.relayrides.pushy.apns.PushManager
@@ -59,6 +60,8 @@ class BootStrap {
 
         log.info("Initialized global users chat: ${User.get(ChatService.GLOBAL_CHAT_USER_ID)}")
 
+
+        UserChainMakerJob.schedule(49000l);
     }
 
     private PushManager buildPushy(ConfigObject grails, String env) {
