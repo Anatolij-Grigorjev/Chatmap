@@ -2,7 +2,6 @@ package lt.mediapark.chatmap
 
 import grails.converters.JSON
 import lt.mediapark.chatmap.utils.Converter
-import lt.mediapark.chatmap.utils.DistanceCalc
 import lt.mediapark.chatmap.utils.UserChainLink
 
 class MapController {
@@ -34,7 +33,6 @@ class MapController {
         //deciding center and excluding those too far away
         UserChainLink center = null
         center = usersChain.find { it.isCenter } as UserChainLink
-        usersChain = usersChain.findAll { DistanceCalc.getHaversineDistance(center.user, it.user) < 1500 }
 
         //set correct margin from group center to let everybody see stuff
         //from central chain link
@@ -47,9 +45,6 @@ class MapController {
         target.minLng = (center?.user?.lng - marginsLng)
         target.maxLat = (center?.user?.lat + marginsLat)
         target.maxLng = (center?.user?.lng + marginsLng)
-
-        //update previous chain so that user can get notified when them chains change
-        Thread.start("${user.name}-CHAIN-NOTIFY") { mapService.notifyOfChainChanges(user, usersChain) }
 
         target.users = usersChain.collect { converterService.userToJSONForMap(it) }
 

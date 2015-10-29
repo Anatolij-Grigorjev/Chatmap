@@ -26,6 +26,7 @@ class UserChainMakerJob {
                         chains++
                         //generate new chain
                         def chain = mapService.generateNewChainFor(user)
+                        //notify of new chain
                         mapService.notifyOfChainChanges(user, chain)
                         //mark as no longer stale for everybody involved
                         chain.user.id.each { staleChains[(it)] = false }
@@ -37,4 +38,6 @@ class UserChainMakerJob {
             }
         }
     }
+
+
 }
